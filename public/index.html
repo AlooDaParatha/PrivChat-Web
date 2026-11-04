@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PrivChat — Sign In / Sign Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#071023;--panel:#0d1520;--muted:#9aa4b2;--accent:#7c5cff;--accent2:#3ddc97}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:Inter,system-ui;background:linear-gradient(180deg,#04050a,#071023);color:#e9f2fb;display:flex;align-items:center;justify-content:center;padding:16px}
+  .card{width:100%;max-width:960px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:14px;padding:20px;display:grid;grid-template-columns:1fr;gap:20px;box-shadow:0 12px 40px rgba(0,0,0,0.6)}
+  .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .logo{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#04101a;flex-shrink:0}
+  h1{margin:8px 0 2px;font-size:clamp(1.5rem, 4vw, 2rem)}
+  h3{margin:0 0 12px;font-size:1.1rem}
+  p.lead{color:var(--muted);margin:0 0 16px;font-size:14px;line-height:1.5}
+  label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px;font-weight:500}
+  input[type="text"],input[type="password"]{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:inherit;font-size:16px;transition:border-color 0.2s}
+  input[type="text"]:focus,input[type="password"]:focus{outline:none;border-color:var(--accent)}
+  .btn{padding:12px 16px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#04101a;font-weight:700;cursor:pointer;font-size:15px;transition:transform 0.2s;white-space:nowrap}
+  .btn:active{transform:scale(0.98)}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted)}
+  .muted{color:var(--muted);font-size:13px}
+  .error{color:#ffb4b4;font-size:13px;margin-top:8px}
+  .small{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.4}
+  .right {padding:16px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+  .right ol{color:var(--muted);padding-left:20px;margin:0;font-size:14px;line-height:1.6}
+  .right ol li{margin-bottom:8px}
+  .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .btn-row{display:flex;gap:10px;margin-top:14px;align-items:flex-start;flex-wrap:wrap}
+  code{background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;font-size:12px}
+  
+  @media(min-width:768px){
+    .card{grid-template-columns:1fr 420px;padding:22px;gap:22px}
+    body{padding:20px}
+  }
+  
+  @media(max-width:480px){
+    .card{padding:16px;border-radius:12px}
+    h1{font-size:1.5rem}
+    .btn-row{flex-direction:column;width:100%}
+    .btn-row .btn{width:100%}
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div>
+      <div class="brand">
+        <div class="logo">PC</div>
+        <div>
+          <strong>PrivChat</strong>
+          <div class="muted">Custom username/password (stored in Firestore)</div>
+        </div>
+      </div>
+      <h1 id="modeTitle">Sign In</h1>
+      <p class="lead">Sign in if you already have an account, or create one. Username is unique (used to log in).</p>
+
+      <div id="formArea">
+        <label for="username">Username</label>
+        <input id="username" type="text" autocomplete="username" placeholder="choose-a-username (no spaces)" />
+        
+        <label for="password" style="margin-top:12px">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="password" />
+
+        <div id="displayNameRow" style="display:none;margin-top:12px">
+          <label for="displayName">Display name</label>
+          <input id="displayName" type="text" placeholder="Name that appears in chat (e.g. Alex)" />
+        </div>
+
+        <div class="btn-row">
+          <button id="primaryBtn" class="btn">Sign in</button>
+          <button id="switchBtn" class="btn ghost">Create account</button>
+        </div>
+        
+        <div id="formError" class="error" style="display:none"></div>
+
+        <div class="small" style="margin-top:12px">By default passwords are hashed client-side with SHA-256 before sending to Firestore. This is for demo use only — not production secure. Use Firebase Auth for production.</div>
+      </div>
+    </div>
+
+    <div class="right">
+      <h3>Quick guide</h3>
+      <ol>
+        <li>Create an account if your username doesn't exist.</li>
+        <li>When signed in you'll be redirected to the dashboard to create or join groups.</li>
+        <li>Groups are joinable by a 5-character ID. Owners are stored in Firestore.</li>
+      </ol>
+
+      <div style="margin-top:16px">
+        <strong>Firebase config</strong>
+        <div class="muted small">Paste your Firebase config into the top of <code>index.html</code>, <code>app.html</code>, and <code>chat.html</code> where noted.</div>
+      </div>
+
+      <div class="links">
+        <button id="demoSign" class="btn ghost">Quick Demo Account</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC3mxKk2jM2ppVRd75p84QoHaZkmmhmNXE",
+  authDomain: "privchat0.firebaseapp.com",
+  projectId: "privchat0",
+  storageBucket: "privchat0.firebasestorage.app",
+  messagingSenderId: "679595145265",
+  appId: "1:679595145265:web:f9ab2bc210deb637e37d10"
+};
+
+let db;
+try{
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+} catch(e){
+  console.warn('Firebase init error', e);
+}
+
+/* --- Helper: SHA-256 hashing (Web Crypto) --- */
+async function hashPassword(password){
+  const enc = new TextEncoder();
+  const data = enc.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* --- UI --- */
+const usernameEl = document.getElementById('username');
+const passwordEl = document.getElementById('password');
+const displayNameEl = document.getElementById('displayName');
+const displayNameRow = document.getElementById('displayNameRow');
+const primaryBtn = document.getElementById('primaryBtn');
+const switchBtn = document.getElementById('switchBtn');
+const formError = document.getElementById('formError');
+const modeTitle = document.getElementById('modeTitle');
+const demoSign = document.getElementById('demoSign');
+
+let isSignup = false;
+
+function setMode(signup){
+  isSignup = !!signup;
+  if(isSignup){
+    modeTitle.textContent = 'Create Account';
+    primaryBtn.textContent = 'Create account';
+    switchBtn.textContent = 'Switch to Sign in';
+    displayNameRow.style.display='block';
+  } else {
+    modeTitle.textContent = 'Sign In';
+    primaryBtn.textContent = 'Sign in';
+    switchBtn.textContent = 'Create account';
+    displayNameRow.style.display='none';
+  }
+  formError.style.display='none';
+}
+setMode(false);
+
+switchBtn.onclick = () => setMode(!isSignup);
+
+/* Quick demo account helper (creates demo user if missing) */
+demoSign.onclick = async () => {
+  usernameEl.value = 'demo';
+  passwordEl.value = 'demo123';
+  displayNameEl.value = 'Demo User';
+  setMode(true);
+  await primaryAction();
+};
+
+/* Primary action: sign in or sign up */
+primaryBtn.onclick = primaryAction;
+
+async function primaryAction(){
+  formError.style.display='none';
+  // normalize username to lowercase so checks are consistent
+  const username = (usernameEl.value||'').trim().toLowerCase();
+  const password = (passwordEl.value||'').trim();
+  const displayName = (displayNameEl.value||'').trim();
+
+  if(!/^[a-z0-9._-]{3,48}$/.test(username)){
+    formError.textContent = 'Username must be 3–48 chars: lowercase letters, digits, . _ - allowed.';
+    formError.style.display='block'; return;
+  }
+  if(password.length < 6){
+    formError.textContent = 'Password must be at least 6 characters.';
+    formError.style.display='block'; return;
+  }
+  if(isSignup && !displayName){
+    formError.textContent = 'Please provide a display name.';
+    formError.style.display='block'; return;
+  }
+
+  try {
+    const hashed = await hashPassword(password);
+    const userRef = db.collection('users').doc(username);
+    const snap = await userRef.get();
+
+    if (snap.exists) {
+      // user exists
+      if (isSignup) {
+        // trying to REGISTER but username already exists -> nicer message
+        formError.textContent = 'Username already taken — choose a different one.';
+        formError.style.display = 'block';
+        return;
+      } else {
+        // trying to SIGN IN -> verify password
+        const data = snap.data();
+        if (data.passwordHash === hashed){
+          // login ok
+          localStorage.setItem('priv_username', username);
+          localStorage.setItem('priv_displayName', data.displayName || username);
+          window.location = 'app.html';
+        } else {
+          formError.textContent = 'Incorrect password.';
+          formError.style.display = 'block';
+        }
+        return;
+      }
+    } else {
+      // user not found
+      if (!isSignup) {
+        // signing in but user not found
+        formError.textContent = 'No account found. Click "Create account" to register.';
+        formError.style.display = 'block';
+        return;
+      }
+      // create account (signup)
+      await userRef.set({
+        passwordHash: hashed,
+        displayName: displayName,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      localStorage.setItem('priv_username', username);
+      localStorage.setItem('priv_displayName', displayName);
+      window.location = 'app.html';
+    }
+  } catch(err){
+    console.error(err);
+    formError.textContent = 'An error occurred: ' + (err.message||err);
+    formError.style.display='block';
+  }
+}
+</script>
+</body>
+</html>

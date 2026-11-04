@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PrivChat — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#071023;--panel:#0d1520;--muted:#9aa4b2;--accent:#7c5cff;--accent2:#3ddc97}
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:Inter,system-ui;min-height:100vh;
+    background:linear-gradient(180deg,#03050a,#071023);
+    color:#eaf3fb;
+    padding-top:68px;
+  }
+  .top{
+    position:fixed;top:0;left:0;right:0;height:68px;
+    padding:12px 18px;display:flex;align-items:center;gap:12px;
+    border-bottom:1px solid rgba(255,255,255,0.03);
+    background:rgba(7,16,35,0.95);
+    backdrop-filter:blur(10px);
+    z-index:100;
+  }
+  .logo{
+    width:44px;height:44px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#04101a;font-weight:800;
+    flex-shrink:0;
+  }
+  .brand{font-weight:700;white-space:nowrap}
+  .userBlock{color:var(--muted);font-size:14px;margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .container{
+    display:flex;flex-direction:column;align-items:center;
+    padding:32px 16px;
+    min-height:calc(100vh - 68px);
+  }
+  .panel{
+    width:100%;max-width:440px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    padding:24px;border-radius:12px;
+    border:1px solid rgba(255,255,255,0.03);
+    box-shadow:0 0 40px rgba(0,0,0,0.5);
+  }
+  input,button{font-family:inherit}
+  input[type="text"]{
+    width:100%;padding:10px;border-radius:10px;
+    border:1px solid rgba(255,255,255,0.06);
+    background:transparent;color:inherit;margin-top:6px;
+    font-size:14px;
+  }
+  input[type="text"]:focus{
+    outline:none;border-color:var(--accent);
+  }
+  .btn{
+    padding:10px 16px;border-radius:10px;border:0;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    color:#04101a;cursor:pointer;transition:opacity .2s;
+    font-weight:600;font-size:14px;
+  }
+  .btn:hover{opacity:.9}
+  .btn.ghost{
+    background:transparent;border:1px solid rgba(255,255,255,0.08);
+    color:var(--muted);
+  }
+  .muted{color:var(--muted);font-size:13px}
+  .groups-container{
+    max-height:280px;
+    overflow-y:auto;
+    margin-top:8px;
+    padding-right:4px;
+  }
+  .groups-container::-webkit-scrollbar{width:6px}
+  .groups-container::-webkit-scrollbar-track{background:rgba(255,255,255,0.02);border-radius:10px}
+  .groups-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:10px}
+  .groups-container::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.15)}
+  .group-item{
+    background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:8px;gap:12px;
+  }
+  .group-info{flex:1;min-width:0}
+  .group-name{font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis}
+  .small{font-size:13px;color:var(--muted)}
+  .empty{color:var(--muted);padding:10px;text-align:center}
+  
+  @media (max-width: 480px) {
+    .top{padding:12px 12px;gap:8px}
+    .logo{width:40px;height:40px;font-size:14px}
+    .brand{font-size:15px}
+    .userBlock{font-size:12px;max-width:100px}
+    .btn{padding:8px 12px;font-size:13px}
+    .container{padding:24px 12px}
+    .panel{padding:20px}
+    h3{font-size:18px}
+  }
+</style>
+</head>
+<body>
+
+  <div class="top">
+    <div class="logo">PC</div>
+    <div class="brand">PrivChat</div>
+    <div id="userBlock" class="userBlock"></div>
+    <button id="signOutBtn" class="btn ghost">Sign out</button>
+  </div>
+
+  <div class="container">
+    <div class="panel">
+      <h3 style="margin-top:0">Create group</h3>
+
+      <div style="margin-bottom:16px;">
+        <label class="small">Group name</label>
+        <input id="groupName" type="text" placeholder="e.g. Friends" />
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label class="small">Group key (optional password)</label>
+        <input id="groupKey" type="text" placeholder="optional key" />
+      </div>
+
+      <button id="createBtn" class="btn" style="width:100%;margin-top:4px">Create</button>
+
+      <hr style="margin:24px 0;border:none;border-top:1px solid rgba(255,255,255,0.05)">
+
+      <div style="margin-bottom:16px;">
+        <label class="small">Join group by ID</label>
+        <input id="joinId" type="text" placeholder="GROUP ID (E.G. X5A9B)" style="text-transform:uppercase" />
+      </div>
+
+      <button id="joinBtn" class="btn ghost" style="width:100%">Join</button>
+
+      <div style="margin-top:22px">
+        <div class="small">Your groups</div>
+        <div class="groups-container">
+          <div id="myGroups"></div>
+        </div>
+        <div id="empty" class="empty" style="display:none">No groups yet.</div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC3mxKk2jM2ppVRd75p84QoHaZkmmhmNXE",
+  authDomain: "privchat0.firebaseapp.com",
+  projectId: "privchat0",
+  storageBucket: "privchat0.firebasestorage.app",
+  messagingSenderId: "679595145265",
+  appId: "1:679595145265:web:f9ab2bc210deb637e37d10"
+};
+
+try{ firebase.initializeApp(firebaseConfig); }catch(e){}
+const db = firebase.firestore();
+
+const username = localStorage.getItem('priv_username');
+const displayName = localStorage.getItem('priv_displayName') || username;
+if(!username){ window.location='index.html'; }
+
+document.getElementById('userBlock').textContent = `${displayName} (${username})`;
+
+const groupNameEl = document.getElementById('groupName');
+const groupKeyEl = document.getElementById('groupKey');
+const myGroups = document.getElementById('myGroups');
+const empty = document.getElementById('empty');
+
+function genId(len=5){
+  const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let s="";for(let i=0;i<len;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+
+/* Create group */
+document.getElementById('createBtn').onclick = async () => {
+  const name = groupNameEl.value.trim();
+  const key = groupKeyEl.value.trim();
+  if (!name) {
+    alert('Enter a group name');
+    return;
+  }
+
+  let id = genId();
+  for (let i = 0; i < 6; i++) {
+    const d = await db.collection('groups').doc(id).get();
+    if (!d.exists) break;
+    id = genId();
+  }
+
+  await db.collection('groups').doc(id).set({
+    name,
+    key: key || null,
+    owner: username,
+    members: [username],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+
+  localStorage.setItem('priv_group', id);
+  window.location = `chat.html?group=${id}`;
+};
+
+/* Join group */
+document.getElementById('joinBtn').onclick = async () => {
+  const id = document.getElementById('joinId').value.trim().toUpperCase();
+  if (!/^[A-Z0-9]{5}$/.test(id)) {
+    alert('Invalid Group ID');
+    return;
+  }
+
+  const docRef = db.collection('groups').doc(id);
+  const snap = await docRef.get();
+  if (!snap.exists) {
+    alert('Group not found');
+    return;
+  }
+
+  const d = snap.data();
+  if (d.key) {
+    const key = prompt('This group is protected. Enter group key:');
+    if (key !== d.key) {
+      alert('Incorrect key');
+      return;
+    }
+  }
+
+  await docRef.update({
+    members: firebase.firestore.FieldValue.arrayUnion(username),
+  });
+
+  localStorage.setItem('priv_group', id);
+  window.location = `chat.html?group=${id}`;
+};
+
+/* Load groups */
+async function loadGroups(){
+  console.log("Username being checked:", username);
+  myGroups.innerHTML='';
+  
+  // This query is correct. It asks for groups where the 'members' array 
+  // contains the logged-in username.
+  const q = await db.collection('groups')
+      .where('members','array-contains',username)
+      .orderBy('createdAt','desc')
+      .get();
+      
+  if(q.empty){ 
+    empty.style.display='block'; 
+    return; 
+  }
+  empty.style.display='none';
+  q.forEach(doc=>{
+    const d=doc.data();
+    const id=doc.id;
+    const el=document.createElement('div');
+    el.className='group-item';
+    el.innerHTML=`
+      <div class="group-info">
+        <div class="group-name">${d.name}</div>
+        <div class="small">ID: ${id}</div>
+      </div>
+      <button class="btn ghost" onclick="openChat('${id}')">Open</button>
+    `;
+    myGroups.appendChild(el);
+  });
+}
+window.openChat=function(id){
+  localStorage.setItem('priv_group',id);
+  window.location=`chat.html?group=${id}`;
+}
+
+document.getElementById('signOutBtn').onclick = ()=>{
+  localStorage.clear();
+  window.location='index.html';
+}
+
+loadGroups();
+</script>
+</body>
+</html>
